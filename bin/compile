@@ -59,11 +59,11 @@ PATH=$PATH:$build_dir/vendor/node/bin
 cd $build_dir
 
 # Install bower as global
-status "Installing global Bower"
-npm install -g bower
+#status "Installing global Bower"
+#npm install -g bower
 
-status "Installing global Grunt"
-npm install -g grunt-cli
+#status "Installing global Grunt"
+#npm install -g grunt-cli
 
 chmod +x $build_dir/vendor/node/bin/*
 
@@ -76,8 +76,9 @@ if test -d $build_dir/node_modules; then
 elif test -d $cache_dir/node/node_modules; then
   status "Restoring node_modules directory from cache"
   cp -r $cache_dir/node/node_modules $build_dir/
-
+  
   status "Pruning cached dependencies not specified in package.json"
+  npm install 2>&1 | indent
   #npm prune 2>&1 | indent
 
   if test -f $cache_dir/node/.heroku/node-version && [ $(cat $cache_dir/node/.heroku/node-version) != "$node_version" ]; then
@@ -90,16 +91,24 @@ fi
 # If bower_components directory is checked into source control then
 # rebuild any native deps. Otherwise, restore from the build cache.
 
+# Install bower if required
+if [! -f $build_dir/node_modules/bower/bin/bower ]; then
+  status "Installing bower"
+  npm install bower
+fi
+
 if test -d $build_dir/bower_components; then
   status "Found existing bower_components directory; skipping cache"
   status "Rebuilding any native dependencies"
-  bower install 2>&1 | indent
+  #bower install 2>&1 | indent
+  $build_dir/node_modules/bower/bin/bower 2>&1 | indent
 elif test -d $cache_dir/node/bower_components; then
   status "Restoring bower_components directory from cache"
   cp -r $cache_dir/node/bower_components $build_dir/  
 
   status "Pruning cached dependencies not specified in bower.json"
-  bower install 2>&1 | indent
+#  bower install 2>&1 | indent
+  $build_dir/node_modules/bower/bin/bower install 2>&1 | indent 
 fi
 
 # Handle npm's new cert bug
@@ -189,6 +198,12 @@ echo "export PATH=\"\$HOME/vendor/node/bin:\$HOME/bin:\$HOME/node_modules/.bin:\
 if test -d $build_dir/bower_components; then
   status "Caching bower_components directory for future builds"
   cp -r $build_dir/bower_components $cache_dir/node
+fi
+
+# Install grunt-cli if required
+if [! -f $build_dir/node_modules/grunt-cli/bin/grunt ]; then
+    status "Installing grunt-cli" 
+    npm install grunt-cli
 fi
 
 # Check and run Grunt
