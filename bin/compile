@@ -58,6 +58,15 @@ PATH=$PATH:$build_dir/vendor/node/bin
 # Run subsequent node/npm commands from the build path
 cd $build_dir
 
+# Install bower as global
+if [ -f $build_dir/vendor/node/bin/bower ]; then
+    npm install -g bower
+fi
+
+if [ -f $build_dir/vendor/node/bin/grunt ]; then
+    npm install -g grunt-cli
+fi
+
 # If node_modules directory is checked into source control then
 # rebuild any native deps. Otherwise, restore from the build cache.
 if test -d $build_dir/node_modules; then
@@ -81,20 +90,16 @@ fi
 # If bower_components directory is checked into source control then
 # rebuild any native deps. Otherwise, restore from the build cache.
 
-if [ -f $build_dir/bower.json ]; then
-  npm install bower
-  if test -d $build_dir/bower_components; then
-    status "Found existing bower_components directory; skipping cache"
-    status "Rebuilding any native dependencies"
-    $build_dir/node_modules/.bin/bower install 2>&1 | indent
-  elif test -d $cache_dir/node/bower_components; then
-    status "Restoring bower_components directory from cache"
-    cp -r $cache_dir/node/bower_components $build_dir/  
-  
-    status "Pruning cached dependencies not specified in package.json"
-    $build_dir/node_modules/.bin/bower prune 2>&1 | indent
-    $build_dir/node_modules/.bin/bower install 2>&1 | indent
-  fi
+if test -d $build_dir/bower_components; then
+  status "Found existing bower_components directory; skipping cache"
+  status "Rebuilding any native dependencies"
+  bower install 2>&1 | indent
+elif test -d $cache_dir/node/bower_components; then
+  status "Restoring bower_components directory from cache"
+  cp -r $cache_dir/node/bower_components $build_dir/  
+
+  status "Pruning cached dependencies not specified in bower.json"
+  bower install 2>&1 | indent
 fi
 
 # Handle npm's new cert bug
@@ -171,8 +176,6 @@ echo "export PATH=\"\$HOME/vendor/node/bin:\$HOME/bin:\$HOME/node_modules/.bin:\
 # Check and install Bower
 (
   if [ -f $build_dir/bower.json ]; then
-    npm install bower
-    echo $cache_dir
     echo "-----> Found bower.json, running bower install"
     
     # make sure that bower are installed locally
@@ -198,10 +201,10 @@ fi
     fi
 
     # make sure that grunt and grunt-cli are installed locally
-    npm install grunt-cli
-    npm install grunt
+    #npm install grunt-cli
+    #npm install grunt
     echo "-----> Found Gruntfile, running grunt heroku:$NODE_ENV task"
-    $build_dir/node_modules/.bin/grunt build:$NODE_ENV
+    grunt build:$NODE_ENV
 
     # status "Pruning dev dependencies"
     # npm prune --production 2>&1 | indent
