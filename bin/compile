@@ -78,7 +78,20 @@ elif test -d $cache_dir/node/node_modules; then
 
 fi
 
-#TODO cache bower_components
+# If bower_components directory is checked into source control then
+# rebuild any native deps. Otherwise, restore from the build cache.
+if test -d $build_dir/bower_components; then
+  status "Found existing bower_components directory; skipping cache"
+  status "Rebuilding any native dependencies"
+  bower install 2>&1 | indent
+elif test -d $cache_dir/node/bower_components; then
+  status "Restoring bower_components directory from cache"
+  cp -r $cache_dir/node/bower_components $build_dir/
+
+  status "Pruning cached dependencies not specified in package.json"
+  bower prune 2>&1 | indent
+  bower install
+fi
 
 # Handle npm's new cert bug
 # http://blog.npmjs.org/post/78085451721/npms-self-signed-certificate-is-no-more
@@ -112,6 +125,8 @@ echo $node_version > $build_dir/.heroku/node-version
 # Purge node-related cached content, being careful not to purge the top-level
 # cache, for the sake of heroku-buildpack-multi apps.
 rm -rf $cache_dir/node_modules # (for apps still on the older caching strategy)
+
+rm -rf $cache_dir/bower_components # remove old bower cache
 rm -rf $cache_dir/node
 mkdir -p $cache_dir/node
 
@@ -119,6 +134,12 @@ mkdir -p $cache_dir/node
 if test -d $build_dir/node_modules; then
   status "Caching node_modules directory for future builds"
   cp -r $build_dir/node_modules $cache_dir/node
+fi
+
+# If app has a bower_components directory, cache it.
+if test -d $build_dir/bower_components; then
+  status "Caching bower_components directory for future builds"
+  cp -r $build_dir/bower_components $cache_dir/node
 fi
 
 # Copy goodies to the cache
