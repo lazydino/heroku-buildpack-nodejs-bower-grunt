@@ -92,7 +92,7 @@ fi
 # rebuild any native deps. Otherwise, restore from the build cache.
 
 # Install bower if required
-if [! -f $build_dir/node_modules/bower/bin/bower ]; then
+if [ ! -f $build_dir/node_modules/bower/bin/bower ]; then
   status "Installing bower"
   npm install bower
 fi
@@ -201,7 +201,7 @@ if test -d $build_dir/bower_components; then
 fi
 
 # Install grunt-cli if required
-if [! -f $build_dir/node_modules/grunt-cli/bin/grunt ]; then
+if [ ! -f $build_dir/node_modules/grunt-cli/bin/grunt ]; then
     status "Installing grunt-cli" 
     npm install grunt-cli
 fi
@@ -219,7 +219,7 @@ fi
     #npm install grunt-cli
     #npm install grunt
     echo "-----> Found Gruntfile, running grunt heroku:$NODE_ENV task"
-    grunt build:$NODE_ENV
+    $build_dir/node_modules/grunt-cli/bin/grunt build:$NODE_ENV
 
     # status "Pruning dev dependencies"
     # npm prune --production 2>&1 | indent
