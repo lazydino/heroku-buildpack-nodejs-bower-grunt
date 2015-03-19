@@ -80,17 +80,21 @@ fi
 
 # If bower_components directory is checked into source control then
 # rebuild any native deps. Otherwise, restore from the build cache.
-if test -d $build_dir/bower_components; then
-  status "Found existing bower_components directory; skipping cache"
-  status "Rebuilding any native dependencies"
-  bower install 2>&1 | indent
-elif test -d $cache_dir/node/bower_components; then
-  status "Restoring bower_components directory from cache"
-  cp -r $cache_dir/node/bower_components $build_dir/
 
-  status "Pruning cached dependencies not specified in package.json"
-  bower prune 2>&1 | indent
-  bower install
+if [ -f $build_dir/bower.json ]; then
+  npm install bower
+  if test -d $build_dir/bower_components; then
+    status "Found existing bower_components directory; skipping cache"
+    status "Rebuilding any native dependencies"
+    $build_dir/node_modules/.bin/bower install 2>&1 | indent
+  elif test -d $cache_dir/node/bower_components; then
+    status "Restoring bower_components directory from cache"
+    cp -r $cache_dir/node/bower_components $build_dir/  
+  
+    status "Pruning cached dependencies not specified in package.json"
+    $build_dir/node_modules/.bin/bower prune 2>&1 | indent
+    $build_dir/node_modules/.bin/bower install 2>&1 | indent
+  fi
 fi
 
 # Handle npm's new cert bug
