@@ -136,12 +136,6 @@ if test -d $build_dir/node_modules; then
   cp -r $build_dir/node_modules $cache_dir/node
 fi
 
-# If app has a bower_components directory, cache it.
-if test -d $build_dir/bower_components; then
-  status "Caching bower_components directory for future builds"
-  cp -r $build_dir/bower_components $cache_dir/node
-fi
-
 # Copy goodies to the cache
 cp -r $build_dir/.heroku $cache_dir/node
 
@@ -184,6 +178,11 @@ echo "export PATH=\"\$HOME/vendor/node/bin:\$HOME/bin:\$HOME/node_modules/.bin:\
   fi
 )
 
+# If app has a bower_components directory, cache it.
+if test -d $build_dir/bower_components; then
+  status "Caching bower_components directory for future builds"
+  cp -r $build_dir/bower_components $cache_dir/node
+fi
 
 # Check and run Grunt
 (
