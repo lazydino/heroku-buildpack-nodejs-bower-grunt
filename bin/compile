@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -e            # fail fast
-set -o pipefail   # don't ignore exit codes when piping output
+set -o pipefail   # don t ignore exit codes when piping output
 # set -x          # enable debugging
 
 # Configure directories
@@ -10,6 +10,8 @@ cache_dir=$2
 env_dir=$3
 
 bp_dir=$(cd $(dirname $0); cd ..; pwd)
+
+status "====> Feitico buildpack"
 
 # Fix leak
 unset GIT_DIR
@@ -146,6 +148,20 @@ status "Building runtime environment"
 mkdir -p $build_dir/.profile.d
 echo "export PATH=\"\$HOME/vendor/node/bin:\$HOME/bin:\$HOME/node_modules/.bin:\$PATH\";" > $build_dir/.profile.d/nodejs.sh
 
+# Check and install Bower
+(
+  if [ -f $build_dir/bower.json ]; then
+    npm install bower
+    echo "-----> Found bower.json, running bower install"
+    
+    # make sure that bower are installed locally
+    $build_dir/node_modules/.bin/bower install
+  else
+    echo "-----> No bower.json found"
+  fi
+)
+
+
 # Check and run Grunt
 (
   if [ -f $build_dir/grunt.js ] || [ -f $build_dir/Gruntfile.js ] || [ -f $build_dir/gruntfile.js ] || [ -f $build_dir/Gruntfile.coffee ]; then
@@ -159,7 +175,7 @@ echo "export PATH=\"\$HOME/vendor/node/bin:\$HOME/bin:\$HOME/node_modules/.bin:\
     npm install grunt-cli
     npm install grunt
     echo "-----> Found Gruntfile, running grunt heroku:$NODE_ENV task"
-    $build_dir/node_modules/.bin/grunt heroku:$NODE_ENV
+    $build_dir/node_modules/.bin/grunt build:$NODE_ENV
 
     status "Pruning dev dependencies"
     npm prune --production 2>&1 | indent
