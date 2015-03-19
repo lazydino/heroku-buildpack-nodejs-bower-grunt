@@ -59,15 +59,13 @@ PATH=$PATH:$build_dir/vendor/node/bin
 cd $build_dir
 
 # Install bower as global
-if [ -f $build_dir/vendor/node/bin/bower ]; then
-  status "Installing global Bower"
-  npm install -g bower
-fi
+status "Installing global Bower"
+npm install -g bower
 
-if [ -f $build_dir/vendor/node/bin/grunt ]; then
-  status "Installing global Grunt"
-  npm install -g grunt-cli
-fi
+status "Installing global Grunt"
+npm install -g grunt-cli
+
+chmod +x $build_dir/vendor/node/bin/*
 
 # If node_modules directory is checked into source control then
 # rebuild any native deps. Otherwise, restore from the build cache.
