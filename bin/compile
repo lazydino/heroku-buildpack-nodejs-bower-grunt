@@ -11,8 +11,6 @@ env_dir=$3
 
 bp_dir=$(cd $(dirname $0); cd ..; pwd)
 
-status "====> Feitico buildpack"
-
 # Fix leak
 unset GIT_DIR
 
@@ -80,6 +78,8 @@ elif test -d $cache_dir/node/node_modules; then
 
 fi
 
+#TODO cache bower_components
+
 # Handle npm's new cert bug
 # http://blog.npmjs.org/post/78085451721/npms-self-signed-certificate-is-no-more
 if [ ! -f "$build_dir/.npmrc" ]; then
@@ -145,6 +145,7 @@ fi
 
 # Update the PATH
 status "Building runtime environment"
+status "====> Feitico buildpack"
 mkdir -p $build_dir/.profile.d
 echo "export PATH=\"\$HOME/vendor/node/bin:\$HOME/bin:\$HOME/node_modules/.bin:\$PATH\";" > $build_dir/.profile.d/nodejs.sh
 
@@ -152,6 +153,7 @@ echo "export PATH=\"\$HOME/vendor/node/bin:\$HOME/bin:\$HOME/node_modules/.bin:\
 (
   if [ -f $build_dir/bower.json ]; then
     npm install bower
+    echo $cache_dir
     echo "-----> Found bower.json, running bower install"
     
     # make sure that bower are installed locally
@@ -177,8 +179,8 @@ echo "export PATH=\"\$HOME/vendor/node/bin:\$HOME/bin:\$HOME/node_modules/.bin:\
     echo "-----> Found Gruntfile, running grunt heroku:$NODE_ENV task"
     $build_dir/node_modules/.bin/grunt build:$NODE_ENV
 
-    status "Pruning dev dependencies"
-    npm prune --production 2>&1 | indent
+    # status "Pruning dev dependencies"
+    # npm prune --production 2>&1 | indent
 
   else
     echo "-----> No Gruntfile (grunt.js, Gruntfile.js, gruntfile.js, Gruntfile.coffee) found"
