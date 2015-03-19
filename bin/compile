@@ -60,11 +60,13 @@ cd $build_dir
 
 # Install bower as global
 if [ -f $build_dir/vendor/node/bin/bower ]; then
-    npm install -g bower
+  status "Installing global Bower"
+  npm install -g bower
 fi
 
 if [ -f $build_dir/vendor/node/bin/grunt ]; then
-    npm install -g grunt-cli
+  status "Installing global Grunt"
+  npm install -g grunt-cli
 fi
 
 # If node_modules directory is checked into source control then
@@ -78,7 +80,7 @@ elif test -d $cache_dir/node/node_modules; then
   cp -r $cache_dir/node/node_modules $build_dir/
 
   status "Pruning cached dependencies not specified in package.json"
-  npm prune 2>&1 | indent
+  #npm prune 2>&1 | indent
 
   if test -f $cache_dir/node/.heroku/node-version && [ $(cat $cache_dir/node/.heroku/node-version) != "$node_version" ]; then
     status "Node version changed since last build; rebuilding dependencies"
