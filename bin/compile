@@ -4,16 +4,12 @@ set -e            # fail fast
 set -o pipefail   # don t ignore exit codes when piping output
 # set -x          # enable debugging
 
-apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
-sudo echo "deb http://download.mono-project.com/repo/debian wheezy main" | sudo tee /etc/apt/sources.list.d/mono-xamarin.list
-#apt-get update
-sudo apt-get -y install mono-complete
-
-
 # Configure directories
 build_dir=$1
 cache_dir=$2
 env_dir=$3
+MONO_VERSION="2.10.8"
+MONO_PACKAGE="https://s3.amazonaws.com/heroku-buildpack-mono/mono-${MONO_VERSION}.tgz"
 
 bp_dir=$(cd $(dirname $0); cd ..; pwd)
 
@@ -22,6 +18,20 @@ unset GIT_DIR
 
 # Load some convenience functions like status(), echo(), and indent()
 source $bp_dir/bin/common.sh
+
+# NOTE: the rest of this script assumes that we're in the build directory
+cd ${build_dir}
+
+# cache may not exist yet
+mkdir -p ${cache_dir}
+
+echo "-----> Bundling Mono v${MONO_VERSION}"
+if [ ! -d "${cache_dir}/mono" ]; then
+  echo "Fetching Mono v${MONO_VERSION} @ ${MONO_PACKAGE}" | indent
+  curl ${MONO_PACKAGE} --silent --max-time 600 -o - | tar xzf - -C ${CACHE_DIR}
+fi
+cp -r "${CACHE_DIR}/mono" .
+
 
 # Output npm debug info on error
 trap cat_npm_debug_log ERR
